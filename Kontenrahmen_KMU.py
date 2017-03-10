@@ -1,4 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Kontenrahmen KMU
+
 kontenrahmen_kmu = {
 	'1': {
 		'name': 'Aktiven',

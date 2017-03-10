@@ -1,75 +1,115 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import datetime
 
+# Konstanten
+DATUM_ZEIT_FORMAT = '%d.%m.%Y %H:%M'
+DATUM_FORMAT = '%d.%m.%Y'
+KONTO_TYP_AKTIV = 'AKTIV'
+KONTO_TYP_PASSIV = 'PASSIV'
+
+
+# Helper
+# Date to String
+def dts(date, time=True):
+	if time:
+		return date.strftime(DATUM_ZEIT_FORMAT)
+	else:
+		return date.strftime(DATUM_FORMAT)
+
+
+# String to Date
+# [!] Returns now() if date_string is ''.
+def std(date_string, time=True):
+	if date_string == '' or date_string is None:
+		return datetime.datetime.now()
+	if time:
+		return datetime.datetime.strptime(date_string, DATUM_ZEIT_FORMAT)
+	else:
+		return datetime.datetime.strptime(date_string, DATUM_FORMAT)
+
+
+# Klassen
 class Konto:
-	def __init__(self, code, name, saldo, aktiv):
+	def __init__(self, code, name):
 		self.code = code
 		self.name = name
-		self.saldo = saldo
-		self.aktiv = aktiv
-
-	def soll(self, betrag):
-		if self.aktiv:
-			self.saldo = self.saldo + betrag
+		self.soll = 0
+		self.haben = 0
+		if self.code[0] == '1':
+			self.typ = KONTO_TYP_AKTIV
+		elif self.code[0] == '2':
+			self.typ = KONTO_TYP_PASSIV
 		else:
-			self.saldo = self.saldo - betrag
+			self.typ = None
 
-	def haben(self, betrag):
-		if self.aktiv:
-			self.saldo = self.saldo - betrag
-		else:
-			self.saldo = self.saldo + betrag
+	def get_saldo(self):
+		if self.typ == KONTO_TYP_AKTIV:
+			return self.soll - self.haben
+		elif self.typ == KONTO_TYP_PASSIV:
+			return self.haben - self.soll
+
+	def soll_eintrag(self, betrag):
+		self.soll = self.soll + betrag
+
+	def haben_eintrag(self, betrag):
+		self.haben = self.haben + betrag
 
 	def __str__(self):
-		return str(self.code + '_' + self.name).ljust(20) + str(self.saldo).rjust(20)
+		return str(self.code + '_' + self.name).ljust(20) + str(self.get_saldo()).rjust(20)
 
 
 class Buchung:
-	def __init__(self, soll, haben, betrag):
-		soll.soll(betrag)
-		haben.haben(betrag)
+	def __init__(self, soll_code, haben_code, betrag, date_string='', text=''):
+		self.datum = std(date_string)
+		self.text = text
+		soll_konto = next((konto for konto in konti if konto.code == str(soll_code)), None)
+		haben_konto = next((konto for konto in konti if konto.code == str(haben_code)), None)
+		soll_konto.soll_eintrag(betrag)
+		haben_konto.haben_eintrag(betrag)
+
 
 class Bilanz:
-	def __init__(self):
-		aktivseite = [key for key in konti.keys() if key[0] == '1']
-		passivseite = [key for key in konti.keys() if key[0] == '2']
-		akt_sum = 0
-		pas_sum = 0
+	def __init__(self, datum=datetime.datetime.now()):
+		aktivseite = [konto for konto in konti if konto.typ == KONTO_TYP_AKTIV]
+		passivseite = [konto for konto in konti if konto.typ == KONTO_TYP_PASSIV]
+		aktiv_summe = 0
+		passiv_summe = 0
 		print('='*83)
-		print('Bilanz vom ' + datetime.datetime.now().strftime('%d.%m.%Y'))
+		print('Bilanz vom ' + dts(datum, False))
 		print('='*83)
-		for n in range(max(len(aktivseite), len(passivseite))):
-			if n < len(aktivseite):
-				akt = konti[aktivseite[n]]
-				akt_sum = akt_sum + akt.saldo
+		for i in range(max(len(aktivseite), len(passivseite))):
+			if i < len(aktivseite):
+				aktiven = aktivseite[i]
+				aktiv_summe += aktiven.get_saldo()
 			else:
-				akt = ''
-			if n < len(passivseite):
-				pas = konti[passivseite[n]]
-				pas_sum = pas_sum + pas.saldo
+				aktiven = ''
+			if i < len(passivseite):
+				passiven = passivseite[i]
+				passiv_summe += passiven.get_saldo()
 			else:
-				pas = '' 
-			print(str(akt).ljust(40) + ' | ' + str(pas).rjust(40))
+				passiven = '' 
+			print(str(aktiven).ljust(40) + ' | ' + str(passiven).rjust(40))
 		print('-'*83)
-		print(str(akt_sum).ljust(40) + ' | ' + str(pas_sum).rjust(40))
+		print(str(aktiv_summe).ljust(40) + ' | ' + str(passiv_summe).rjust(40))
 		print('='*83)
 
-konti = {
-	'1000' : Konto('1000', 'Kasse', 0, True),
-	'1020' : Konto('1020', 'Bank', 0, True),
-	'1510' : Konto('1510', 'Mobilien', 0, True),
-	'2000' : Konto('2000', 'Kreditoren', 0, False),
-	'2800' : Konto('2800', 'Eigenkapital', 0, False)
-}
+konti = [
+	Konto('1000', 'Kasse'),
+	Konto('1020', 'Bank'),
+	Konto('1510', 'Mobilien'),
+	Konto('2000', 'Kreditoren'),
+	Konto('2800', 'Eigenkapital')
+]
 
-
-
-
+# Beispiele
 Bilanz()
-Buchung(konti['1020'], konti['2800'], 1000)
+Buchung(1020, 2800, 1000, date_string='10.03.2017 06:24', text='Kapitaleinlage')
 Bilanz()
-Buchung(konti['1000'], konti['1020'], 100)
+Buchung(1000, 1020, 100)
 Bilanz()
-Buchung(konti['1510'], konti['2000'], 500)
+Buchung(1510, 2000, 500)
 Bilanz()
-Buchung(konti['2000'], konti['1020'], 200)
+Buchung(2000, 1020, 200)
 Bilanz()
