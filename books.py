@@ -35,8 +35,7 @@ class Konto:
 	def __init__(self, code, name):
 		self.code = code
 		self.name = name
-		self.soll = 0
-		self.haben = 0
+		self.buchungen = []
 		if self.code[0] == '1':
 			self.typ = KONTO_TYP_AKTIV
 		elif self.code[0] == '2':
@@ -46,15 +45,15 @@ class Konto:
 
 	def get_saldo(self):
 		if self.typ == KONTO_TYP_AKTIV:
-			return self.soll - self.haben
+			return sum([buchung[0] for buchung in self.buchungen]) - sum([buchung[1] for buchung in self.buchungen])
 		elif self.typ == KONTO_TYP_PASSIV:
-			return self.haben - self.soll
+			return sum([buchung[1] for buchung in self.buchungen]) - sum([buchung[0] for buchung in self.buchungen])
 
 	def soll_eintrag(self, betrag):
-		self.soll = self.soll + betrag
+		self.buchungen.append((betrag, 0))
 
 	def haben_eintrag(self, betrag):
-		self.haben = self.haben + betrag
+		self.buchungen.append((0, betrag))
 
 	def __str__(self):
 		return str(self.code + '_' + self.name).ljust(20) + str(self.get_saldo()).rjust(20)
@@ -107,9 +106,9 @@ konti = [
 Bilanz()
 Buchung(1020, 2800, 1000, date_string='10.03.2017 06:24', text='Kapitaleinlage')
 Bilanz()
-Buchung(1000, 1020, 100)
+Buchung(1000, 1020, 100, text='Barbezug')
 Bilanz()
-Buchung(1510, 2000, 500)
+Buchung('1510', '2000', 500)
 Bilanz()
-Buchung(2000, 1020, 200)
+Buchung(2000, '1020', 200)
 Bilanz()
