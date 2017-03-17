@@ -21,7 +21,8 @@ Kontenrahmen_KMU = {
 				},
 				'1020': {
 					'name': 'Bank',
-					'typ': KONTO_TYP_AKTIV
+					'typ': KONTO_TYP_AKTIV,
+					'gegenkonto': '2100'
 				},
 				'1050': {
 					'name': 'Kurzfristige Geldanlagen',
@@ -157,7 +158,8 @@ Kontenrahmen_KMU = {
 				},
 				'2100': {
 					'name': 'Bank',
-					'typ': KONTO_TYP_PASSIV
+					'typ': KONTO_TYP_PASSIV,
+					'gegenkonto': '1020'
 				},
 				'2200': {
 					'name': 'Kreditore Umsatzsteuer (MWST)',
