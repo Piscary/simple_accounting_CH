@@ -2,12 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-
-# Konstanten
-DATUM_ZEIT_FORMAT = '%d.%m.%Y %H:%M'
-DATUM_FORMAT = '%d.%m.%Y'
-KONTO_TYP_AKTIV = 'AKTIV'
-KONTO_TYP_PASSIV = 'PASSIV'
+from Konstanten import *
+from Kontenrahmen_KMU import Kontenrahmen_KMU as KMU_Konti
 
 
 # Helper
@@ -30,23 +26,21 @@ def std(date_string, time=True):
 		return datetime.datetime.strptime(date_string, DATUM_FORMAT)
 
 
+konti = []
+
 # Klassen
 class Konto:
-	def __init__(self, code, name):
+	def __init__(self, code, name, typ, gegenkonto_code=''):
 		self.code = code
 		self.name = name
+		self.typ = typ
 		self.buchungen = []
-		if self.code[0] == '1':
-			self.typ = KONTO_TYP_AKTIV
-		elif self.code[0] == '2':
-			self.typ = KONTO_TYP_PASSIV
-		else:
-			self.typ = None
+		self.gegenkonto = next((konto for konto in konti if konto.code == str(gegenkonto_code)), None)
 
 	def get_saldo(self):
-		if self.typ == KONTO_TYP_AKTIV:
+		if self.typ == KONTO_TYP_AKTIV or self.typ == KONTO_TYP_AUFWAND:
 			return sum([buchung[0] for buchung in self.buchungen]) - sum([buchung[1] for buchung in self.buchungen])
-		elif self.typ == KONTO_TYP_PASSIV:
+		elif self.typ == KONTO_TYP_PASSIV or self.typ == KONTO_TYP_ERTRAG:
 			return sum([buchung[1] for buchung in self.buchungen]) - sum([buchung[0] for buchung in self.buchungen])
 
 	def soll_eintrag(self, betrag):
@@ -56,17 +50,20 @@ class Konto:
 		self.buchungen.append((0, betrag))
 
 	def __str__(self):
-		return str(self.code + '_' + self.name).ljust(20) + str(self.get_saldo()).rjust(20)
+		if self.get_saldo() < 0 and self.gegenkonto is not None:
+			return str(self.gegenkonto.code + '_' + self.gegenkonto.name[:23]).ljust(30) + str(self.gegenkonto.get_saldo()).rjust(10)
+		return str(self.code + '_' + self.name[:23]).ljust(30) + str(self.get_saldo()).rjust(10, '_')
 
 
 class Buchung:
 	def __init__(self, soll_code, haben_code, betrag, date_string='', text=''):
 		self.datum = std(date_string)
 		self.text = text
-		soll_konto = next((konto for konto in konti if konto.code == str(soll_code)), None)
-		haben_konto = next((konto for konto in konti if konto.code == str(haben_code)), None)
-		soll_konto.soll_eintrag(betrag)
-		haben_konto.haben_eintrag(betrag)
+		self.soll_konto = next((konto for konto in konti if konto.code == str(soll_code)), None)
+		self.haben_konto = next((konto for konto in konti if konto.code == str(haben_code)), None)
+		self.betrag = float(betrag)
+		self.soll_konto.soll_eintrag(self.betrag)
+		self.haben_konto.haben_eintrag(self.betrag)
 
 
 class Bilanz:
@@ -94,13 +91,33 @@ class Bilanz:
 		print(str(aktiv_summe).ljust(40) + ' | ' + str(passiv_summe).rjust(40))
 		print('='*83)
 
-konti = [
-	Konto('1000', 'Kasse'),
-	Konto('1020', 'Bank'),
-	Konto('1510', 'Mobilien'),
-	Konto('2000', 'Kreditoren'),
-	Konto('2800', 'Eigenkapital')
-]
+
+def load_konti():
+	for top_key in KMU_Konti.keys():
+		for kat_key in KMU_Konti[top_key].keys():
+			if kat_key.isnumeric():
+				if len(kat_key) == 4:
+					konti.append(
+						Konto(kat_key, KMU_Konti[top_key][kat_key]['name'], KMU_Konti[top_key][kat_key]['typ'])
+					)
+				else:
+					for knt_key in KMU_Konti[top_key][kat_key].keys():
+						if knt_key.isnumeric():
+							if len(knt_key) == 4:
+								konti.append(
+									Konto(knt_key, KMU_Konti[top_key][kat_key][knt_key]['name'], KMU_Konti[top_key][kat_key][knt_key]['typ'])
+								)
+							else:
+								for k in KMU_Konti[top_key][kat_key][knt_key].keys():
+									if k.isnumeric():
+										if len(k) == 4:
+											konti.append(
+												Konto(k, KMU_Konti[top_key][kat_key][knt_key][k]['name'],
+																		KMU_Konti[top_key][kat_key][knt_key][k]['typ'])
+											)
+
+
+load_konti()
 
 # Beispiele
 Bilanz()
