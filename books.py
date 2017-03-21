@@ -90,11 +90,12 @@ class Bilanz:
 		self.passivseite = [konto for konto in konti if konto.get_typ() == KONTO_TYP_PASSIV]
 
 	def output(self):
+		output = ''
 		aktiv_summe = 0
 		passiv_summe = 0
-		print('='*83)
-		print('Bilanz vom ' + dts(self.datum, False))
-		print('='*83)
+		output += ('='*83) + '\n'
+		output += ('Bilanz vom ' + dts(self.datum, False)) + '\n'
+		output += ('='*83) + '\n'
 		for i in range(max(len(self.aktivseite), len(self.passivseite))):
 			aktiven = ''
 			passiven = ''
@@ -108,11 +109,11 @@ class Bilanz:
 				passiven = self.passivseite[i]
 				passiv_summe += passiven.get_saldo()
 				passiven_str = str(passiven.code + '_' + passiven.name[:23]).ljust(30) + str(passiven.get_saldo()).rjust(10, '_')
-			print(aktiven_str + ' | ' + passiven_str)
-		print('-'*83)
-		print(str(aktiv_summe).ljust(40) + ' | ' + str(passiv_summe).rjust(40))
-		print('='*83)
-		return ''
+			output += (aktiven_str + ' | ' + passiven_str) + '\n'
+		output += ('-'*83) + '\n'
+		output += (str(aktiv_summe).ljust(40) + ' | ' + str(passiv_summe).rjust(40)) + '\n'
+		output += ('='*83) + '\n'
+		return output
 
 
 class Erfolgsrechnung:
@@ -133,28 +134,28 @@ class Erfolgsrechnung:
 
 	def output(self):
 		# TODO: Erfolgsrechnung verstehen, dann output planen :P
+		output = ''
 		aufwand_summe = 0
 		ertrag_summe = 0
-		print('='*83)
-		print('Erfolgsrechnung')
-		print('='*83)
+		output += ('='*83) + '\n'
+		output += ('Erfolgsrechnung') + '\n'
+		output += ('='*83) + '\n'
 		for i in range(max(len(self.aufwandseite), len(self.ertragseite))):
 			if i < len(self.aufwandseite):
 				aufwaendungen = self.aufwandseite[i]
 				aufwand_summe += aufwaendungen.get_saldo()
+				aufwaendungen_str = str(aufwaendungen.code + '_' + aufwaendungen.name[:23]).ljust(30) + str(aufwaendungen.get_saldo()).rjust(10, '_')
 			else:
 				aufwaendungen = ''
 			if i < len(self.ertragseite):
 				ertraege = self.ertragseite[i]
 				ertrag_summe += ertraege.get_saldo()
-			else:
-				ertraege = ''
-			if aufwaendungen.__str__():
-				print(str(aufwaendungen).ljust(40) + ' | ' + str(ertraege).rjust(40))
-		print('-'*83)
-		print(str(aufwand_summe).ljust(40) + ' | ' + str(ertrag_summe).rjust(40))
-		print('='*83)
-		return ''
+				ertraege_str = str(ertraege.code + '_' + ertraege.name[:23]).ljust(30) + str(ertraege.get_saldo()).rjust(10, '_')
+			output += (aufwaendungen_str + ' | ' + ertraege_str) + '\n'
+		output += ('-'*83) + '\n'
+		output += (str(aufwand_summe).ljust(40) + ' | ' + str(ertrag_summe).rjust(40)) + '\n'
+		output += ('='*83) + '\n'
+		return output
 
 
 def load_konti():
