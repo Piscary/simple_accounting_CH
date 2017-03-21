@@ -112,6 +112,7 @@ class Bilanz:
 		print('-'*83)
 		print(str(aktiv_summe).ljust(40) + ' | ' + str(passiv_summe).rjust(40))
 		print('='*83)
+		return ''
 
 
 class Erfolgsrechnung:
@@ -153,6 +154,7 @@ class Erfolgsrechnung:
 		print('-'*83)
 		print(str(aufwand_summe).ljust(40) + ' | ' + str(ertrag_summe).rjust(40))
 		print('='*83)
+		return ''
 
 
 def load_konti():
