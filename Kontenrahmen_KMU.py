@@ -220,7 +220,7 @@ Kontenrahmen_KMU = {
 			'2850': {
 				'name': 'Privat',
 				'typ': KONTO_TYP_PASSIV
-			}
+			},
 			# == Ende Einzelunternehmung ==
 
 			# == Aktiengesellschaft ==
@@ -240,10 +240,10 @@ Kontenrahmen_KMU = {
 			# 	'name': 'Freiwillige Gewinnreserven',
 			# 	'typ': KONTO_TYP_PASSIV
 			# },
-			# '2970': {
-			# 	'name': 'Gewinnvortrag',
-			# 	'typ': KONTO_TYP_PASSIV
-			# }
+			'2970': {
+				'name': 'Gewinnvortrag',
+				'typ': KONTO_TYP_PASSIV
+			}
 			# == Ende Aktiengesellschaft ==
 		}
 	},
