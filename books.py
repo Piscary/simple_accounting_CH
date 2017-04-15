@@ -3,7 +3,7 @@
 
 import datetime
 from Konstanten import *
-from Kontenrahmen_KMU import Kontenrahmen_KMU as KMU_Konti
+from Kontenrahmen_TEST import Kontenrahmen_TEST as Kontenrahmen
 
 
 # Helper
@@ -27,6 +27,8 @@ def std(date_string, time=True):
 
 
 konti = []
+buchungen = []
+
 
 # Klassen
 class Konto:
@@ -36,6 +38,7 @@ class Konto:
 		self.typ = typ
 		self.buchungen = []
 		self.gegenkonto_code = gegenkonto_code
+		konti.append(self)
 
 	def get_gegenkonto(self):
 		return next((konto for konto in konti if konto.code == str(self.gegenkonto_code)), None)
@@ -49,8 +52,9 @@ class Konto:
 			return haben_summe - soll_summe
 
 	def get_typ(self):
-		if self.get_saldo() < 0 and self.get_gegenkonto():
-			return '-' + self.get_gegenkonto().typ
+		if self.get_saldo():
+			if self.get_saldo() < 0 and self.get_gegenkonto():
+				return '-' + self.get_gegenkonto().typ
 		return self.typ
 
 	def soll_eintrag(self, betrag):
@@ -59,13 +63,11 @@ class Konto:
 	def haben_eintrag(self, betrag):
 		self.buchungen.append((0, betrag))
 
-	def __str__(self):
-		# TODO: Refactor this!
-		if self.get_saldo() >= 0:
-			return str(self.code + '_' + self.name[:23]).ljust(30) + str(self.get_saldo()).rjust(10, '_')
-
 	def output(self):
 		return str(self.code + '_' + self.name[:23]).ljust(30) + str(self.get_saldo()).rjust(10, '_')
+
+	def save_string(self):
+		return str(self.code) + ';' + str(self.name) + ';' + str(self.get_saldo())
 
 
 class Buchung:
@@ -81,6 +83,10 @@ class Buchung:
 			self.soll_konto.get_gegenkonto().soll_eintrag(self.betrag)
 		if self.haben_konto.get_gegenkonto():
 			self.haben_konto.get_gegenkonto().haben_eintrag(self.betrag)
+		buchungen.append(self)
+
+	def save_string(self):
+		return '{0};{1};{2};{3};{4}'.format(dts(self.datum), self.soll_konto.code, self.haben_konto.code, self.betrag, self.text)
 
 
 class Bilanz:
@@ -97,10 +103,8 @@ class Bilanz:
 		output += ('Bilanz vom ' + dts(self.datum, False)) + '\n'
 		output += ('='*83) + '\n'
 		for i in range(max(len(self.aktivseite), len(self.passivseite))):
-			aktiven = ''
-			passiven = ''
-			aktiven_str = ''*40
-			passiven_str = ''*40
+			aktiven_str = ' '*40
+			passiven_str = ' '*40
 			if i < len(self.aktivseite):
 				aktiven = self.aktivseite[i]
 				aktiv_summe += aktiven.get_saldo()
@@ -124,10 +128,10 @@ class Erfolgsrechnung:
 	def update_gewinnvortrag(self):
 		aufwand = sum((konto.get_saldo() for konto in self.aufwandseite))
 		ertrag = sum((konto.get_saldo() for konto in self.ertragseite))
-		erfolg = aufwand - ertrag
+		erfolg = ertrag - aufwand
 		gewinnvortrag = next((konto for konto in konti if konto.code == '2970'), None)
 		gewinnvortrag.history = []
-		if erfolg < 0:
+		if erfolg > 0:
 			gewinnvortrag.haben_eintrag(erfolg)
 		else:
 			gewinnvortrag.soll_eintrag(erfolg)
@@ -141,12 +145,12 @@ class Erfolgsrechnung:
 		output += ('Erfolgsrechnung') + '\n'
 		output += ('='*83) + '\n'
 		for i in range(max(len(self.aufwandseite), len(self.ertragseite))):
+			aufwaendungen_str = ' '*40
+			ertraege_str = ' '*40
 			if i < len(self.aufwandseite):
 				aufwaendungen = self.aufwandseite[i]
 				aufwand_summe += aufwaendungen.get_saldo()
 				aufwaendungen_str = str(aufwaendungen.code + '_' + aufwaendungen.name[:23]).ljust(30) + str(aufwaendungen.get_saldo()).rjust(10, '_')
-			else:
-				aufwaendungen = ''
 			if i < len(self.ertragseite):
 				ertraege = self.ertragseite[i]
 				ertrag_summe += ertraege.get_saldo()
@@ -159,24 +163,24 @@ class Erfolgsrechnung:
 
 
 def load_konti():
-	for top_key in KMU_Konti.keys():
-		for kat_key in KMU_Konti[top_key].keys():
-			ebene_1 = KMU_Konti[top_key][kat_key]
+	for top_key in Kontenrahmen.keys():
+		for kat_key in Kontenrahmen[top_key].keys():
+			ebene_1 = Kontenrahmen[top_key][kat_key]
 			if kat_key.isnumeric():
 				if len(kat_key) == 4:
 					gegenkonto = ''
 					if 'gegenkonto' in ebene_1.keys():
 						gegenkonto = ebene_1['gegenkonto']
-					konti.append(Konto(kat_key, ebene_1['name'], ebene_1['typ'], gegenkonto))
+					Konto(kat_key, ebene_1['name'], ebene_1['typ'], gegenkonto)
 				else:
-					for knt_key in KMU_Konti[top_key][kat_key].keys():
+					for knt_key in Kontenrahmen[top_key][kat_key].keys():
 						ebene_2 = ebene_1[knt_key]
 						if knt_key.isnumeric():
 							if len(knt_key) == 4:
 								gegenkonto = ''
 								if 'gegenkonto' in ebene_2.keys():
 									gegenkonto = ebene_2['gegenkonto']
-								konti.append(Konto(knt_key, ebene_2['name'], ebene_2['typ'], gegenkonto))
+								Konto(knt_key, ebene_2['name'], ebene_2['typ'], gegenkonto)
 							else:
 								for k in ebene_2.keys():
 									ebene_3 = ebene_2[k]
@@ -185,25 +189,27 @@ def load_konti():
 											gegenkonto = ''
 											if 'gegenkonto' in ebene_3.keys():
 												gegenkonto = ebene_3['gegenkonto']
-											konti.append(Konto(k, ebene_3['name'], ebene_3['typ'], gegenkonto))
+											Konto(k, ebene_3['name'], ebene_3['typ'], gegenkonto)
 
 
 load_konti()
 
 # Beispiele
-Bilanz()
 Buchung(1020, 2800, 1000, date_string='10.03.2017 06:24', text='Kapitaleinlage')
-Bilanz()
 Buchung(1000, 1020, 100, text='Barbezug')
-Bilanz()
-Buchung('1510', '2000', 500)
-Bilanz()
-Buchung(2000, '1020', 200)
-Bilanz()
-Buchung(6000, 1020, 700)
-Bilanz()
+#Buchung('1510', '2000', 500)
+Buchung(6000, 1020, 1000)
+#Buchung(1000, 3200, 2500)
 
 ef = Erfolgsrechnung()
 ef.update_gewinnvortrag()
 print(ef.output())
 print(Bilanz().output())
+
+
+with open('data/TEST_Konten.csv', 'w') as konten_file:
+	for konto in konti:
+		konten_file.write(konto.save_string() + '\n')
+with open('data/TEST_Buchungen.csv', 'w') as buchungen_file:
+	for buchung in buchungen:
+		buchungen_file.write(buchung.save_string() + '\n')

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from Konstanten import KONTO_TYP_AUFWAND, KONTO_TYP_ERTRAG, KONTO_TYP_PASSIV, KONTO_TYP_AKTIV
+from Konstanten import KONTO_TYP_AUFWAND, KONTO_TYP_ERTRAG, \
+	KONTO_TYP_PASSIV, KONTO_TYP_AKTIV, KONTO_TYP_BILANZ, KONTO_TYP_ERFOLGSRECHNUNG
 
 # Kontenrahmen KMU
 Kontenrahmen_KMU = {
@@ -240,11 +241,11 @@ Kontenrahmen_KMU = {
 			# 	'name': 'Freiwillige Gewinnreserven',
 			# 	'typ': KONTO_TYP_PASSIV
 			# },
+			# == Ende Aktiengesellschaft ==
 			'2970': {
 				'name': 'Gewinnvortrag',
 				'typ': KONTO_TYP_PASSIV
 			}
-			# == Ende Aktiengesellschaft ==
 		}
 	},
 	'3': {
@@ -281,7 +282,7 @@ Kontenrahmen_KMU = {
 			'typ': KONTO_TYP_AUFWAND
 		},
 		'4400': {
-			'name': 'Aufwand fpr Drittleistungen',
+			'name': 'Aufwand für Drittleistungen',
 			'typ': KONTO_TYP_AUFWAND
 		}
 	},
@@ -403,11 +404,11 @@ Kontenrahmen_KMU = {
 		'name': 'Abschluss',
 		'9000': {
 			'name': 'Erfolgsrechnung',
-			'typ': KONTO_TYP_AUFWAND
+			'typ': KONTO_TYP_ERFOLGSRECHNUNG
 		},
 		'9100': {
 			'name': 'Bilanz',
-			'typ': KONTO_TYP_ERTRAG
+			'typ': KONTO_TYP_BILANZ
 		}
 	}
 }
