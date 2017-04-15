@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# DATE AND TIME
+DATE_TIME_FORMAT = '%d.%m.%Y %H:%M'
+DATE_FORMAT = '%d.%m.%Y'
+
+ACCOUNT_TYPES = {
+	'ASSET': 'AKTIV',
+	'LIABILITY': 'PASSIV',
+	'EXPENSE': 'AUFWAND',
+	'INCOME': 'ERTRAG',
+	'INCOME_STATEMENT': 'ERFOLGSRECHNUNG',
+	'BALANCE_SHEET': 'BILANZ'
+}
+
+ACCOUNT_ATTRIBUTES = {
+	'NAME': 'name',
+	'TYPE': 'typ',
+}
+
+ACCOUNT_SIDE = {
+	'LEFT': [
+			ACCOUNT_TYPES['ASSET'],
+			ACCOUNT_TYPES['EXPENSE'],
+			ACCOUNT_TYPES['INCOME_STATEMENT']
+		],
+	'RIGHT': [
+			ACCOUNT_TYPES['LIABILITY'],
+			ACCOUNT_TYPES['INCOME'],
+			ACCOUNT_TYPES['BALANCE_SHEET']
+		]
+}
+
+
+POSTING_ATTRIBUTES = {
+	'DATE': 'datum',
+	'DEBIT': 'soll',
+	'CREDIT': 'haben',
+}
+

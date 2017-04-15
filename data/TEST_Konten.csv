@@ -1,0 +1,14 @@
+1000;Kasse;100.0
+1020;Bank;-100.0
+1100;Debitoren (Forderungen aus Lieferungen und Leistungen);0
+2000;Kreditoren (Verbindlichkeiten aus Lieferungen und Leistungen);0
+2100;Bank;100.0
+2800;Eigenkapital;1000.0
+2970;Gewinnvortrag;1000.0
+3200;Warenertrag (Handelserlös);0
+3400;Dienstleistungsertrag;0
+4200;Warenaufwand;0
+5000;Lohnaufwand;0
+6000;Raumaufwand/Mietaufwand;1000.0
+9000;Erfolgsrechnung;None
+9100;Bilanz;None
