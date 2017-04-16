@@ -35,6 +35,7 @@ ACCOUNT_SIDE = {
 
 POSTING_ATTRIBUTES = {
 	'DATE': 'datum',
+	'TEXT': 'text',
 	'DEBIT': 'soll',
 	'CREDIT': 'haben',
 }

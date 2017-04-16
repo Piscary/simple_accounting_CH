@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import datetime
-import gc
 import logging
 from SETTINGS import *
 from Kontenrahmen_TEST import Kontenrahmen_TEST as Accounts
@@ -18,23 +17,32 @@ logger.setLevel(logging.DEBUG)
 
 
 # Helper
-# Date to String
-def dts(date, time=True):
+def dts(date='', time=True):
+	# Date to String
+	if date == '':
+		date = datetime.datetime.now()
 	if time:
 		return date.strftime(DATE_TIME_FORMAT)
 	else:
 		return date.strftime(DATE_FORMAT)
 
 
-# String to Date
-# [!] Returns now() if date_string is ''.
-def std(date_string, time=True):
-	if date_string == '' or date_string is None:
+def std(date_string='', time=True):
+	# String to Date
+	# [!] Returns now() if date_string is ''.
+	if date_string == '':
 		return datetime.datetime.now()
 	if time:
 		return datetime.datetime.strptime(date_string, DATE_TIME_FORMAT)
 	else:
 		return datetime.datetime.strptime(date_string, DATE_FORMAT)
+
+
+def d_dict(date='', time=True):
+	dd = dict()
+	dd[POSTING_ATTRIBUTES['DATE']] = dts(date, time)
+	return dd
+
 
 # Global Variables
 LoadedAccounts = []
@@ -91,7 +99,7 @@ class Account:
 
 
 class Posting:
-	def __init__(self, debit_code, credit_code, amount, raw_data={}):
+	def __init__(self, debit_code, credit_code, amount, raw_data=d_dict()):
 		self.debit_account = next((account for account in LoadedAccounts if account.code == str(debit_code)), None)
 		if self.debit_account is None:
 			raise ValueError('No debit_account with debit_code[{}] found.'.format(str(debit_code)))
@@ -100,6 +108,8 @@ class Posting:
 			raise ValueError('No credit_account with credit_code[{}] found.'.format(str(debit_code)))
 		self.amount = amount
 		self.data = {}
+		if POSTING_ATTRIBUTES['DATE'] not in raw_data.keys():
+			raw_data.update(d_dict())
 		for key in raw_data.keys():
 			if key in POSTING_ATTRIBUTES.values():
 				self.data[key] = raw_data[key]
@@ -111,7 +121,7 @@ class Posting:
 		debit_posting[POSTING_ATTRIBUTES['DEBIT']] = self.amount
 		debit_posting[POSTING_ATTRIBUTES['CREDIT']] = 0
 		for key in self.data.keys():
-			debit_posting[key] = self.data.keys()
+			debit_posting[key] = self.data[key]
 		return debit_posting
 
 	def _get_posting_for_credit(self):
@@ -119,15 +129,17 @@ class Posting:
 		credit_posting[POSTING_ATTRIBUTES['DEBIT']] = 0
 		credit_posting[POSTING_ATTRIBUTES['CREDIT']] = self.amount
 		for key in self.data.keys():
-			credit_posting[key] = self.data.keys()
+			credit_posting[key] = self.data[key]
 		return credit_posting
 
 
-for a_konto in Accounts.keys():
-	Account((a_konto, Accounts[a_konto]))
+for acc in Accounts.keys():
+	Account((acc, Accounts[acc]))
 
-Posting(1000, 9100, 99.75)
-Posting(9100, 2800, 99.75)
+Posting(1000, 9100, 99.75, raw_data={'text': 'Opening Balance'})
+Posting(9100, 2800, 99.75, raw_data={'text': 'Opening Balance'})
+Posting(1020, 9100, 1300, raw_data={'text': 'Opening Balance'})
+Posting(9100, 2800, 1300, raw_data={'text': 'Opening Balance'})
 
 for a in LoadedAccounts:
-	print(str(a.code).rjust(5), a.get_balance())
+	print(str(a.code).rjust(5), str(a.postings))
