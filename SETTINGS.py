@@ -40,3 +40,7 @@ POSTING_ATTRIBUTES = {
 	'CREDIT': 'haben',
 }
 
+FILE_PATHS = {
+	'ACCOUNTS': './data/ACCOUNTS.json',
+	'POSTINGS': './data/POSTINGS.json',
+}
