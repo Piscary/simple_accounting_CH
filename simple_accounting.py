@@ -57,11 +57,11 @@ class Controller:
 
 	def save_accounts(self, accounts_path=FILE_PATHS['ACCOUNTS']):
 		with open(accounts_path, 'w') as accounts_file:
-			json.dump(self.account_data, accounts_file)
+			json.dump(self.account_data, accounts_file, indent=4)
 
 	def save_postings(self, postings_path=FILE_PATHS['POSTINGS']):
 		with open(postings_path, 'w') as postings_file:
-			json.dump(self.posting_data, postings_file)
+			json.dump(self.posting_data, postings_file, indent=4)
 
 	def load_accounts(self, accounts_path=FILE_PATHS['ACCOUNTS']):
 		with open(accounts_path, 'r') as accounts_file:
@@ -89,7 +89,7 @@ class Controller:
 		self.save_accounts()
 		self.save_postings()
 
-cnt = Controller()
+CONTROLLER = Controller()
 
 
 class Account:
@@ -108,7 +108,7 @@ class Account:
 				logging.info('{}.{} = "{}"'.format(str(self.code), key, str(self.data[key])))
 		logging.info('finished creating {}'.format(str(self.code)))
 		self.postings = []
-		cnt.register_account(self)
+		CONTROLLER.register_account(self)
 
 	def get_type(self):
 		if ACCOUNT_ATTRIBUTES['TYPE'] in self.data.keys():
@@ -117,11 +117,22 @@ class Account:
 
 	def get_balance(self):
 		balance = 0
-		debit = self.get_debit_amount()
-		credit = self.get_credit_amount()
 		if self.get_type() in ACCOUNT_SIDE['LEFT']:
+			debit = self.get_debit_amount()
+			credit = self.get_credit_amount()
 			balance = debit - credit
 		elif self.get_type() in ACCOUNT_SIDE['RIGHT']:
+			debit = self.get_debit_amount()
+			credit = self.get_credit_amount()
+			balance = credit - debit
+		elif self.get_type() == ACCOUNT_TYPES['PROFIT_CARRYFORWARD']:
+			debit = 0
+			credit = 0
+			for account in CONTROLLER.ACCOUNTS:
+				if account.get_type() == ACCOUNT_TYPES['EXPENSE']:
+					debit += account.get_balance()
+				if account.get_type() == ACCOUNT_TYPES['INCOME']:
+					credit += account.get_balance()
 			balance = credit - debit
 		elif self.get_type() is None:
 			for account in self.sub_accounts:
@@ -142,10 +153,10 @@ class Account:
 
 class Posting:
 	def __init__(self, debit_code, credit_code, amount, raw_data=d_dict()):
-		self.debit_account = next((account for account in cnt.ACCOUNTS if account.code == str(debit_code)), None)
+		self.debit_account = next((account for account in CONTROLLER.ACCOUNTS if account.code == str(debit_code)), None)
 		if self.debit_account is None:
 			raise ValueError('No debit_account with debit_code[{}] found.'.format(str(debit_code)))
-		self.credit_account = next((account for account in cnt.ACCOUNTS if account.code == str(credit_code)), None)
+		self.credit_account = next((account for account in CONTROLLER.ACCOUNTS if account.code == str(credit_code)), None)
 		if self.credit_account is None:
 			raise ValueError('No credit_account with credit_code[{}] found.'.format(str(debit_code)))
 		self.amount = amount
@@ -157,7 +168,7 @@ class Posting:
 				self.data[key] = raw_data[key]
 		self.debit_account.add_posting(self._get_posting_for_debit())
 		self.credit_account.add_posting(self._get_posting_for_credit())
-		cnt.register_posting(self._get_tuple())
+		CONTROLLER.register_posting(self._get_tuple())
 
 	def _get_posting_for_debit(self):
 		debit_posting = dict()
@@ -183,8 +194,7 @@ class Posting:
 		return debit, credit, amount, data
 
 
-cnt.start()
-cnt.save()
+CONTROLLER.start()
 
-for a in cnt.ACCOUNTS:
+for a in CONTROLLER.ACCOUNTS:
 	print(str(a.code).rjust(5), str(a.get_balance()))
