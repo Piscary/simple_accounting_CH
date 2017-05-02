@@ -9,16 +9,133 @@
                     "name": "Kasse",
                     "typ": "AKTIV"
                 },
+                "1010": {
+                    "name": "Post",
+                    "typ": "AKTIV"
+                },
                 "1020": {
                     "name": "Bank",
                     "typ": "AKTIV",
                     "gegenkonto": "2100"
+                },
+                "1050": {
+                    "name": "Kurzfristige Geldanlagen",
+                    "typ": "AKTIV"
+                },
+                "1060": {
+                    "name": "Wertschriften",
+                    "typ": "AKTIV"
                 }
             },
             "110": {
                 "name": "Forderungen",
                 "1100": {
                     "name": "Debitoren (Forderungen aus Lieferungen und Leistungen)",
+                    "typ": "AKTIV"
+                },
+                "1109": {
+                    "name": "Delkredere (Wertberichtigung Debitoren)",
+                    "typ": "AKTIV"
+                },
+                "1140": {
+                    "name": "Vorsch\u00fcsse und Darlehen",
+                    "typ": "AKTIV"
+                },
+                "1170": {
+                    "name": "Debitor Vorsteuer (MWST)",
+                    "typ": "AKTIV"
+                },
+                "1176": {
+                    "name": "Debitor VSt (Verrechnungssteuer)",
+                    "typ": "AKTIV"
+                }
+            },
+            "120": {
+                "name": "Vorr\u00e4te",
+                "1200": {
+                    "name": "(Handels-)Waren",
+                    "typ": "AKTIV"
+                },
+                "1210": {
+                    "name": "Rohmaterial",
+                    "typ": "AKTIV"
+                },
+                "1260": {
+                    "name": "Fertige Erzeugnisse",
+                    "typ": "AKTIV"
+                },
+                "1270": {
+                    "name": "Unfertige Erzeugnisse",
+                    "typ": "AKTIV"
+                },
+                "1280": {
+                    "name": "Nicht fakturierte Dienstleistungen",
+                    "typ": "AKTIV"
+                }
+            },
+            "130": {
+                "name": "Vorr\u00e4te",
+                "1300": {
+                    "name": "Aktive Rechnungsabgrenzung (Transitorische Aktiven)",
+                    "typ": "AKTIV"
+                }
+            }
+        },
+        "14": {
+            "name": "Anlageverm\u00f6gen",
+            "140": {
+                "name": "Finanzanlagen",
+                "1440": {
+                    "name": "Aktivdarlehen",
+                    "typ": "AKTIV"
+                },
+                "1480": {
+                    "name": "Beteiligungen",
+                    "typ": "AKTIV"
+                }
+            },
+            "150": {
+                "name": "Finanzanlagen",
+                "1500": {
+                    "name": "Maschinen, Apparate",
+                    "typ": "AKTIV"
+                },
+                "1509": {
+                    "name": "Wertberichtigung",
+                    "typ": "AKTIV"
+                },
+                "1510": {
+                    "name": "Mobiliar, Einrichtungen",
+                    "typ": "AKTIV"
+                },
+                "1520": {
+                    "name": "B\u00fcromaschinen, Informatik, Kommunikation",
+                    "typ": "AKTIV"
+                },
+                "1530": {
+                    "name": "Fahrzeuge",
+                    "typ": "AKTIV"
+                },
+                "1540": {
+                    "name": "Werkzeuge, Ger\u00e4te",
+                    "typ": "AKTIV"
+                }
+            },
+            "160": {
+                "name": "Immobile Sachanlagen",
+                "1600": {
+                    "name": "Immobilien (Liegenschaften)",
+                    "typ": "AKTIV"
+                },
+                "1609": {
+                    "name": "Wertberichtigung",
+                    "typ": "AKTIV"
+                }
+            },
+            "170": {
+                "name": "Immaterielle Anlagen",
+                "1700": {
+                    "name": "Patente, Lizenzen",
                     "typ": "AKTIV"
                 }
             }
@@ -38,6 +155,53 @@
                     "name": "Bank",
                     "typ": "PASSIV",
                     "gegenkonto": "1020"
+                },
+                "2200": {
+                    "name": "Kreditore Umsatzsteuer (MWST)",
+                    "typ": "PASSIV"
+                },
+                "2206": {
+                    "name": "Kreditor VSt (Verrechnungssteuer)",
+                    "typ": "PASSIV"
+                },
+                "2260": {
+                    "name": "Dividenden",
+                    "typ": "PASSIV"
+                },
+                "2270": {
+                    "name": "Kreditoren Sozialversicherungen",
+                    "typ": "PASSIV"
+                },
+                "2300": {
+                    "name": "Passive Rechnungsabgrenzung (Transitorische Passiven)",
+                    "typ": "PASSIV"
+                },
+                "2330": {
+                    "name": "Kurzfristige R\u00fcckstellungen",
+                    "typ": "PASSIV"
+                }
+            },
+            "240": {
+                "name": "Langfristiges Fremdkapital",
+                "2400": {
+                    "name": "Bankdarlehen",
+                    "typ": "PASSIV"
+                },
+                "2430": {
+                    "name": "Obligationenanleihen",
+                    "typ": "PASSIV"
+                },
+                "2450": {
+                    "name": "Passivdarlehen",
+                    "typ": "PASSIV"
+                },
+                "2451": {
+                    "name": "Hypotheken",
+                    "typ": "PASSIV"
+                },
+                "2600": {
+                    "name": "Langfristige R\u00fcckstellungen",
+                    "typ": "PASSIV"
                 }
             }
         },
@@ -45,6 +209,10 @@
             "name": "Eigenkapital",
             "2800": {
                 "name": "Eigenkapital",
+                "typ": "PASSIV"
+            },
+            "2850": {
+                "name": "Privat",
                 "typ": "PASSIV"
             },
             "2970": {
@@ -55,6 +223,14 @@
     },
     "3": {
         "name": "Betriebsertrag aus Lieferungen und Leistungen",
+        "3000": {
+            "name": "Ertrag aus dem Verkauf von Erzeugnissen (Produktionserl\u00f6s)",
+            "typ": "ERTRAG"
+        },
+        "3080": {
+            "name": "Bestandes\u00e4nderungen an unfertigen und fertigen Erzeugnissen",
+            "typ": "AUFWAND"
+        },
         "3200": {
             "name": "Warenertrag (Handelserl\u00f6s)",
             "typ": "ERTRAG"
@@ -62,12 +238,24 @@
         "3400": {
             "name": "Dienstleistungsertrag",
             "typ": "ERTRAG"
+        },
+        "3800": {
+            "name": "Debitorenverluste (Verluste aus Forderungen)",
+            "typ": "AUFWAND"
         }
     },
     "4": {
         "name": "Aufwand f\u00fcr Material, Waren und Dienstleistungen",
+        "4000": {
+            "name": "Materialaufwand",
+            "typ": "AUFWAND"
+        },
         "4200": {
             "name": "Warenaufwand",
+            "typ": "AUFWAND"
+        },
+        "4400": {
+            "name": "Aufwand f\u00fcr Drittleistungen",
             "typ": "AUFWAND"
         }
     },
@@ -76,12 +264,112 @@
         "5000": {
             "name": "Lohnaufwand",
             "typ": "AUFWAND"
+        },
+        "5700": {
+            "name": "Sozialversicherungsaufwand",
+            "typ": "AUFWAND"
+        },
+        "4400": {
+            "name": "\u00dcbriger Personalaufwand",
+            "typ": "AUFWAND"
         }
     },
     "6": {
         "name": "\u00dcbriger Betriebsaufwand sowie Zinsen",
         "6000": {
             "name": "Raumaufwand/Mietaufwand",
+            "typ": "AUFWAND"
+        },
+        "6100": {
+            "name": "Unterhalt und Reparaturen",
+            "typ": "AUFWAND"
+        },
+        "6300": {
+            "name": "Versicherungsaufwand",
+            "typ": "AUFWAND"
+        },
+        "6400": {
+            "name": "Energie- und Entsorgungsaufwand",
+            "typ": "AUFWAND"
+        },
+        "6500": {
+            "name": "Verwaltungsaufwand",
+            "typ": "AUFWAND"
+        },
+        "6600": {
+            "name": "Werbeaufwand",
+            "typ": "AUFWAND"
+        },
+        "6700": {
+            "name": "Sonstiger Betriebsaufwand",
+            "typ": "AUFWAND"
+        },
+        "6800": {
+            "name": "Abschreibungen",
+            "typ": "AUFWAND"
+        },
+        "6900": {
+            "name": "Zinsaufwand (Finanzaufwand)",
+            "typ": "AUFWAND"
+        },
+        "6950": {
+            "name": "Zinsertrag (Finanzertrag)",
+            "typ": "ERTRAG"
+        }
+    },
+    "7": {
+        "name": "Betrieblicher Nebenerfolg",
+        "740": {
+            "name": "Wertschriften-/Beteiligungserfolg",
+            "7400": {
+                "name": "Wertschriftenertrag",
+                "typ": "ERTRAG"
+            },
+            "7410": {
+                "name": "Wertschriftenaufwand",
+                "typ": "AUFWAND"
+            },
+            "7450": {
+                "name": "Beteiligungsertrag",
+                "typ": "ERTRAG"
+            },
+            "7460": {
+                "name": "Beteiligungsaufwand",
+                "typ": "AUFWAND"
+            }
+        },
+        "750": {
+            "name": "Liegenschaftserfolg",
+            "7500": {
+                "name": "Liegenschaftsertrag",
+                "typ": "ERTRAG"
+            },
+            "7510": {
+                "name": "Liegenschaftsaufwand",
+                "typ": "AUFWAND"
+            }
+        }
+    },
+    "8": {
+        "name": "Neutraler Erfolg",
+        "8000": {
+            "name": "Betriebsfremder Aufwand",
+            "typ": "AUFWAND"
+        },
+        "8100": {
+            "name": "Betriebsfremder Ertrag",
+            "typ": "ERTRAG"
+        },
+        "8500": {
+            "name": "Ausserordentlicher Aufwand",
+            "typ": "AUFWAND"
+        },
+        "8600": {
+            "name": "Ausserordentlicher Ertrag",
+            "typ": "ERTRAG"
+        },
+        "8900": {
+            "name": "Direkte Steuern",
             "typ": "AUFWAND"
         }
     },

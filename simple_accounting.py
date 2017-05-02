@@ -3,6 +3,7 @@
 import datetime
 import logging
 import json
+from bottle import route, run, request, post
 from SETTINGS import *
 
 
@@ -194,7 +195,65 @@ class Posting:
 		return debit, credit, amount, data
 
 
-CONTROLLER.start()
+class Api:
+	def __init__(self):
+		pass
 
-for a in CONTROLLER.ACCOUNTS:
-	print(str(a.code).rjust(5), str(a.get_balance()))
+	@staticmethod
+	@route('/')
+	def index():
+		return 'API is active.'
+
+	@staticmethod
+	@post('/api/new/posting')
+	def save_posting():
+		try:
+			posting_data = json.loads(request.body.getvalue())
+			debit = posting_data['debit']
+			credit = posting_data['credit']
+			amount = posting_data['amount']
+			date = ''
+			if 'date' in posting_data.keys():
+				date = posting_data['date']
+			data = d_dict(date)
+			if 'text' in posting_data.keys():
+				data[POSTING_ATTRIBUTES['TEXT']] = data['text']
+		except KeyError:
+			return 'Failed'
+		try:
+			Posting(debit, credit, amount, data)
+			return 'OK'
+		except ValueError:
+			return 'Failed'
+
+	@staticmethod
+	@route('/api/get/accounts')
+	def get_accounts():
+		data = []
+		accounts = sorted(CONTROLLER.ACCOUNTS, key=lambda x: str(x.code), reverse=False)
+		for account in accounts:
+			row = dict()
+			row['code'] = account.code
+			row['name'] = account.data[ACCOUNT_ATTRIBUTES['NAME']]
+			row['balance'] = account.get_balance()
+			data.append(row)
+		return json.dumps(data)
+
+	@staticmethod
+	@route('/api/get/postings')
+	def get_postings():
+		data = []
+		for posting in CONTROLLER.posting_data:
+			row = dict()
+			row['debit'] = posting[0]
+			row['credit'] = posting[1]
+			row['amount'] = posting[2]
+			row['date'] = posting[3][POSTING_ATTRIBUTES['DATE']]
+			if POSTING_ATTRIBUTES['TEXT'] in posting[3].keys():
+				row[POSTING_ATTRIBUTES['TEXT']] = posting[3][POSTING_ATTRIBUTES['TEXT']]
+			data.append(row)
+		return json.dumps(data)
+
+API = Api()
+CONTROLLER.start()
+run(host='localhost', port=8080)
