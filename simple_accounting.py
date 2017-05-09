@@ -3,7 +3,8 @@
 import datetime
 import logging
 import json
-from bottle import route, run, request, post
+from bottle import route, run, request, post, response, hook
+import requests
 from SETTINGS import *
 
 
@@ -38,10 +39,27 @@ def std(date_string='', time=True):
 		return datetime.datetime.strptime(date_string, DATE_FORMAT)
 
 
-def d_dict(date='', time=True):
+def d_dict(raw_date='', time=True):
 	dd = dict()
-	dd[POSTING_ATTRIBUTES['DATE']] = dts(date, time)
+	if isinstance(raw_date, datetime.datetime):
+		date = dts(raw_date, time)
+	elif isinstance(raw_date, str):
+		date = raw_date
+	dd[POSTING_ATTRIBUTES['DATE']] = date
 	return dd
+
+
+def get_exchange_rates(base, target, date_string=''):
+	if date_string == '':
+		date = datetime.datetime.now().strftime('%Y-%m-%d')
+	else:
+		date = std(date_string).strftime('%Y-%m-%d')
+	raw = requests.get('http://api.fixer.io/{}?base={}'.format(date, base))
+	if raw.ok:
+		rates = json.loads(raw.content)
+		rate = rates['rates'][target]
+		return rate
+	return False
 
 
 class Controller:
@@ -151,6 +169,18 @@ class Account:
 	def add_posting(self, posting):
 		self.postings.append(posting)
 
+	def get_vat(self):
+		if ACCOUNT_ATTRIBUTES['VAT'] in self.data.keys():
+			return float(self.data[ACCOUNT_ATTRIBUTES['VAT']])
+		else:
+			return DEFAULTS['VAT']
+
+	def get_currency(self):
+		if ACCOUNT_ATTRIBUTES['CURRENCY'] in self.data.keys():
+			return self.data['CURRENCY']
+		else:
+			return DEFAULTS['CURRENCY']
+
 
 class Posting:
 	def __init__(self, debit_code, credit_code, amount, raw_data=d_dict()):
@@ -161,9 +191,17 @@ class Posting:
 		if self.credit_account is None:
 			raise ValueError('No credit_account with credit_code[{}] found.'.format(str(debit_code)))
 		self.amount = amount
+		if self.debit_account.get_vat() != 0.0 and self.debit_account.get_type() not in NO_VAT_ACCOUNT_TYPES:
+			self._split_posting_left()
+		elif self.credit_account.get_vat() != 0.0:
+			self._split_posting_right()
 		self.data = {}
 		if POSTING_ATTRIBUTES['DATE'] not in raw_data.keys():
 			raw_data.update(d_dict())
+		if POSTING_ATTRIBUTES['CURRENCY'] not in raw_data.keys():
+			raw_data[POSTING_ATTRIBUTES['CURRENCY']] = DEFAULTS['CURRENCY']
+		if POSTING_ATTRIBUTES['TEXT'] not in raw_data.keys():
+			raw_data[POSTING_ATTRIBUTES['TEXT']] = ''
 		for key in raw_data.keys():
 			if key in POSTING_ATTRIBUTES.values():
 				self.data[key] = raw_data[key]
@@ -171,18 +209,67 @@ class Posting:
 		self.credit_account.add_posting(self._get_posting_for_credit())
 		CONTROLLER.register_posting(self._get_tuple())
 
+	def _net_amount(self, account):
+		return (float(self.amount) / (100 + account.get_vat())) * 100
+
+	def _split_posting_left(self):
+		amount = self._net_amount(self.debit_account)
+		vat = self.amount - float(amount)
+		data = {POSTING_ATTRIBUTES['TEXT']: '{}{}'.format(self.debit_account.get_vat(), ACCOUNT_ATTRIBUTES['VAT'])}
+		tax_account = next((acc for acc in CONTROLLER.ACCOUNTS if acc.get_type() == ACCOUNT_TYPES['INPUT_TAX']), None)
+		if tax_account is None:
+			raise ValueError('No account with type {} found.'.format(ACCOUNT_TYPES['INPUT_TAX']))
+		Posting(tax_account.code, self.credit_account.code, vat, data)
+
+	def _split_posting_right(self):
+		amount = self._net_amount(self.credit_account)
+		vat = self.amount - float(amount)
+		data = {POSTING_ATTRIBUTES['TEXT']: '{}{}'.format(self.credit_account.get_vat(), ACCOUNT_ATTRIBUTES['VAT'])}
+		tax_account = next((acc for acc in CONTROLLER.ACCOUNTS if acc.get_type() == ACCOUNT_TYPES['TURNOVER_TAX']), None)
+		if tax_account is None:
+			raise ValueError('No account with type {} found.'.format(ACCOUNT_TYPES['TURNOVER_TAX']))
+		Posting(self.debit_account.code, tax_account.code, vat, data)
+
 	def _get_posting_for_debit(self):
+		posting_currency = self.data[POSTING_ATTRIBUTES['CURRENCY']]
+		account_currency = self.debit_account.get_currency()
+		if posting_currency == account_currency:
+			amount = self.amount
+		else:
+			exchange_rate = get_exchange_rates(
+				posting_currency,
+				account_currency,
+				self.data[POSTING_ATTRIBUTES['DATE']]
+			)
+			if exchange_rate:
+				amount = self.amount*exchange_rate
+			else:
+				raise ValueError('Exchange rate not found')
 		debit_posting = dict()
-		debit_posting[POSTING_ATTRIBUTES['DEBIT']] = self.amount
+		debit_posting[POSTING_ATTRIBUTES['DEBIT']] = amount
 		debit_posting[POSTING_ATTRIBUTES['CREDIT']] = 0
 		for key in self.data.keys():
 			debit_posting[key] = self.data[key]
 		return debit_posting
 
 	def _get_posting_for_credit(self):
+		posting_currency = self.data[POSTING_ATTRIBUTES['CURRENCY']]
+		account_currency = self.credit_account.get_currency()
+		if posting_currency == account_currency:
+			amount = self.amount
+		else:
+			exchange_rate = get_exchange_rates(
+				posting_currency,
+				account_currency,
+				self.data[POSTING_ATTRIBUTES['DATE']]
+			)
+			if exchange_rate:
+				amount = self.amount*exchange_rate
+			else:
+				raise ValueError('Exchange rate[{}{}] not found'.format(posting_currency, account_currency))
 		credit_posting = dict()
 		credit_posting[POSTING_ATTRIBUTES['DEBIT']] = 0
-		credit_posting[POSTING_ATTRIBUTES['CREDIT']] = self.amount
+		credit_posting[POSTING_ATTRIBUTES['CREDIT']] = amount
 		for key in self.data.keys():
 			credit_posting[key] = self.data[key]
 		return credit_posting
@@ -200,13 +287,21 @@ class Api:
 		pass
 
 	@staticmethod
+	@hook('after_request')
+	def enable_cors():
+		response.headers['Access-Control-Allow-Origin'] = '*'
+		response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS'
+		response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
+		response.headers['Content-Type'] = 'application/json'
+
+	@staticmethod
 	@route('/')
 	def index():
 		return 'API is active.'
 
 	@staticmethod
 	@post('/api/new/posting')
-	def save_posting():
+	def new_posting():
 		try:
 			posting_data = json.loads(request.body.getvalue())
 			debit = posting_data['debit']
@@ -217,7 +312,10 @@ class Api:
 				date = posting_data['date']
 			data = d_dict(date)
 			if 'text' in posting_data.keys():
-				data[POSTING_ATTRIBUTES['TEXT']] = data['text']
+				data[POSTING_ATTRIBUTES['TEXT']] = posting_data['text']
+			data[POSTING_ATTRIBUTES['CURRENCY']] = DEFAULTS['CURRENCY']
+			if 'currency' in posting_data.keys():
+				data[POSTING_ATTRIBUTES['CURRENCY']] = posting_data['currency']
 		except KeyError:
 			return 'Failed'
 		try:
@@ -236,6 +334,8 @@ class Api:
 			row['code'] = account.code
 			row['name'] = account.data[ACCOUNT_ATTRIBUTES['NAME']]
 			row['balance'] = account.get_balance()
+			row['type'] = account.get_type()
+			row['currency'] = account.get_currency()
 			data.append(row)
 		return json.dumps(data)
 
@@ -249,10 +349,24 @@ class Api:
 			row['credit'] = posting[1]
 			row['amount'] = posting[2]
 			row['date'] = posting[3][POSTING_ATTRIBUTES['DATE']]
-			if POSTING_ATTRIBUTES['TEXT'] in posting[3].keys():
-				row[POSTING_ATTRIBUTES['TEXT']] = posting[3][POSTING_ATTRIBUTES['TEXT']]
+			row['currency'] = posting[3][POSTING_ATTRIBUTES['CURRENCY']]
+			row['text'] = posting[3][POSTING_ATTRIBUTES['TEXT']]
 			data.append(row)
 		return json.dumps(data)
+
+	@staticmethod
+	@route('/api/<account_code>')
+	@route('/api/<account_code>/postings')
+	def show_account(account_code):
+		account = next((acc for acc in CONTROLLER.ACCOUNTS if acc.code == account_code), None)
+		return json.dumps(account.postings)
+
+	@staticmethod
+	@route('/api/save')
+	def save_all():
+		CONTROLLER.save()
+		return 'OK'
+
 
 API = Api()
 CONTROLLER.start()

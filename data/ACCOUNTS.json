@@ -14,9 +14,17 @@
                     "typ": "AKTIV"
                 },
                 "1020": {
-                    "name": "Bank",
-                    "typ": "AKTIV",
-                    "gegenkonto": "2100"
+                  "name": "Bank",
+                  "1020.1": {
+                      "name": "Bank CHF",
+                      "typ": "AKTIV",
+                      "gegenkonto": "2100.1"
+                  },
+                  "1020.2": {
+                      "name": "Bank EUR",
+                      "typ": "AKTIV",
+                      "gegenkonto": "2100.2"
+                  }
                 },
                 "1050": {
                     "name": "Kurzfristige Geldanlagen",
@@ -43,7 +51,7 @@
                 },
                 "1170": {
                     "name": "Debitor Vorsteuer (MWST)",
-                    "typ": "AKTIV"
+                    "typ": "VORSTEUER"
                 },
                 "1176": {
                     "name": "Debitor VSt (Verrechnungssteuer)",
@@ -106,7 +114,8 @@
                 },
                 "1510": {
                     "name": "Mobiliar, Einrichtungen",
-                    "typ": "AKTIV"
+                    "typ": "AKTIV",
+                    "mwst": 8
                 },
                 "1520": {
                     "name": "B\u00fcromaschinen, Informatik, Kommunikation",
@@ -153,12 +162,20 @@
                 },
                 "2100": {
                     "name": "Bank",
-                    "typ": "PASSIV",
-                    "gegenkonto": "1020"
+                    "2100.1": {
+                      "name": "Bank CHF",
+                      "typ": "PASSIV",
+                      "gegenkonto": "1020.1"
+                    },
+                    "2100.2": {
+                      "name": "Bank EUR",
+                      "typ": "PASSIV",
+                      "gegenkonto": "1020.2"
+                    }
                 },
                 "2200": {
                     "name": "Kreditore Umsatzsteuer (MWST)",
-                    "typ": "PASSIV"
+                    "typ": "UMSATZSTEUER"
                 },
                 "2206": {
                     "name": "Kreditor VSt (Verrechnungssteuer)",
@@ -233,7 +250,8 @@
         },
         "3200": {
             "name": "Warenertrag (Handelserl\u00f6s)",
-            "typ": "ERTRAG"
+            "typ": "ERTRAG",
+            "mwst": 8
         },
         "3400": {
             "name": "Dienstleistungsertrag",
